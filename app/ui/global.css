@@ -16,3 +16,13 @@ input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+@layer components {
+  .heading-1 {
+    @apply mb-4 text-2xl md:text-3xl;
+  }
+
+  .heading-2 {
+    @apply mb-4 text-xl md:text-2xl;
+  }
+}
