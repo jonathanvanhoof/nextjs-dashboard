@@ -17,7 +17,7 @@ const FormSchema = z.object({
 
 const CreateInvoice = FormSchema.omit({ id: true, date: true });
 
-export async function createInvoice(formData: FormData): Promise<void> {
+export async function createInvoice(formData: FormData) {
   const { customerId, amount, status } = CreateInvoice.parse({
     customerId: formData.get('customerId'),
     amount: formData.get('amount'),
@@ -26,10 +26,15 @@ export async function createInvoice(formData: FormData): Promise<void> {
   const amountInCents = amount * 100;
   const date = new Date().toISOString().split('T')[0];
 
-  await sql`
-      INSERT INTO invoices (customer_id, amount, status, date)
-      VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
-  `;
+  try {
+    await sql`
+        INSERT INTO invoices (customer_id, amount, status, date)
+        VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
+    `;
+  } catch (error) {
+    console.error('Database Error:', error);
+    return { message: 'Database Error: Failed to Create Invoice.' };
+  }
 
   // Next.js has a client-side router cache that stores the route segments in the user's browser for a time.
   // Along with prefetching, this cache ensures that users can quickly navigate between routes while reducing the number of requests made to the server.
@@ -50,13 +55,19 @@ export async function updateInvoice(id: string, formData: FormData) {
 
   const amountInCents = amount * 100;
 
-  await sql`
-      UPDATE invoices
-      SET customer_id = ${customerId},
-          amount      = ${amountInCents},
-          status      = ${status}
-      WHERE id = ${id}
-  `;
+  try {
+    await sql`
+        UPDATE invoices
+        SET customer_id = ${customerId},
+            amount      = ${amountInCents},
+            status      = ${status}
+        WHERE id = ${id}
+    `;
+  } catch (error) {
+    // We'll also log the error to the console for now
+    console.error(error);
+    return { message: 'Database Error: Failed to Update Invoice.' };
+  }
 
   revalidatePath('/dashboard/invoices');
   redirect('/dashboard/invoices');
